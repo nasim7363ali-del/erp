@@ -704,3 +704,6 @@ textarea { min-height: 70px; }
 .picker-surface.erp { min-height: 0; background: transparent; font-size: inherit; }
 
 @media (max-width: 800px) { .global-menu-label { display: none; } .global-menu { min-width: 44px; min-height: 44px; padding: 8px; flex: none; } }
+.accounting-tree { list-style: none; padding: 0; display: grid; gap: 8px; }
+.accounting-tree > li { border: 1px solid var(--line); border-radius: 8px; padding: 12px; background: var(--card); display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 8px; overflow-wrap: anywhere; }
+@media (max-width: 800px) { .navigation .desktop-nav-only { display: none; } }

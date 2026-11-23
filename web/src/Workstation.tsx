@@ -38,7 +38,7 @@ export default function Workstation({ boot, tab, offline, pending = 0, problems 
         <p className="rail-label">مساحة العمل</p>
         {(Object.keys(modules) as Tab[]).filter(key => !modules[key].requiredPerm || boot.perms?.[modules[key].requiredPerm!] || (preview && key === 'conflicts')).map((key) => {
           const { icon: Icon, title } = modules[key];
-          return <a key={key} href={modules[key].route} aria-current={tab === key ? 'page' : undefined}><Icon size={19} aria-hidden="true" /><span>{title}</span>{key === 'conflicts' && problems > 0 && <b className="rail-count">{problems}</b>}</a>;
+          return <a className={['pos','invoices','shift','conflicts','account'].includes(key) ? undefined : 'desktop-nav-only'} key={key} href={modules[key].route} aria-current={tab === key ? 'page' : undefined}><Icon size={19} aria-hidden="true" /><span>{title}</span>{key === 'conflicts' && problems > 0 && <b className="rail-count">{problems}</b>}</a>;
         })}
       </nav>
       <div className="rail-end">
