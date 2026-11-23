@@ -46,3 +46,21 @@ test('Arabic normalization and code matching do not depend on a network', async 
   expect(matchesPicker(records[0], normalizePicker('مؤسسه'), 'name')).toBe(true);
   expect(restrictionFor({ ...records[0], restriction: 'inactive' })).toContain('غير نشط');
 });
+
+test('cart survives navigation; customer picker supports keyboard lookup offline', async ({ page, context }) => {
+  await page.goto('/#/pos');
+  await page.getByRole('button', { name: /أضف أرز بسمتي/ }).click();
+  await page.evaluate(() => { location.hash = '#/account'; });
+  await expect(page.getByRole('heading', { name: 'الأجهزة' })).toBeVisible();
+  await page.evaluate(() => { location.hash = '#/pos'; });
+  await expect(page.locator('.basket').getByRole('status')).toContainText('1');
+  const mobileBasket = page.getByRole('button', { name: /عرض السلة/ });
+  if (await mobileBasket.isVisible()) await mobileBasket.click();
+  await page.locator('.checkout-button:visible').first().click();
+  await page.getByLabel('طريقة الدفع', { exact: true }).selectOption('CREDIT');
+  await context.setOffline(true);
+  const code = page.getByRole('combobox', { name: 'الرقم — العميل (للبيع الآجل)' });
+  await code.fill('c001');
+  await code.press('Enter');
+  await expect(page.getByRole('combobox', { name: 'الاسم — العميل (للبيع الآجل)' })).toHaveValue('مؤسسة النور');
+});

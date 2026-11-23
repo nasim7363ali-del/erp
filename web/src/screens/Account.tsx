@@ -1,3 +1,4 @@
+import { SubmitButton } from '../ui/kit/SubmitButton';
 import { useEffect, useState } from 'react';
 import { api, ApiError, setToken, type Me } from '../api';
 
@@ -58,7 +59,7 @@ export default function Account({ forced, onChanged, onLogout }: { forced: boole
           <h3>المصادقة الثنائية <span className={'chip ' + (me.two_fa_enabled ? 'ok' : 'warn')}>{me.two_fa_enabled ? 'مفعّلة' : 'غير مفعّلة'}</span></h3>
           {!me.two_fa_enabled && !setup && (<>
             <p className="muted">تضيف رمزًا يتغير كل 30 ثانية من تطبيق على هاتفك، فلا تكفي كلمة المرور وحدها لدخول حسابك.</p>
-            <button className="btn primary" onClick={startSetup} disabled={busy}>تفعيل المصادقة الثنائية</button>
+            <SubmitButton className="btn primary" onClick={startSetup} blocked={busy}>تفعيل المصادقة الثنائية</SubmitButton>
           </>)}
           {setup && (<>
             <p>١. افتح تطبيق مصادقة (Google Authenticator أو Microsoft Authenticator) وامسح الرمز:</p>
@@ -66,13 +67,13 @@ export default function Account({ forced, onChanged, onLogout }: { forced: boole
             <p className="muted">أو أدخل هذا المفتاح يدويًا:</p>
             <code className="secret" dir="ltr">{setup.secret}</code>
             <label>٢. اكتب الرمز الظاهر في التطبيق<input value={code} onChange={(e) => setCode(e.target.value)} inputMode="numeric" autoComplete="one-time-code" dir="ltr" /></label>
-            <button className="btn primary" onClick={enable} disabled={busy || code.trim().length !== 6}>تأكيد وتفعيل</button>
+            <SubmitButton className="btn primary" onClick={enable} blocked={busy || code.trim().length !== 6}>تأكيد وتفعيل</SubmitButton>
           </>)}
           {me.two_fa_enabled && !me.two_fa_required && (<>
             <p className="muted">لإيقافها أدخل كلمة المرور ورمزًا حاليًا.</p>
             <label>كلمة المرور<input type="password" value={off.password} onChange={(e) => setOff({ ...off, password: e.target.value })} autoComplete="current-password" /></label>
             <label>الرمز<input value={off.code} onChange={(e) => setOff({ ...off, code: e.target.value })} inputMode="numeric" dir="ltr" /></label>
-            <button className="btn danger" onClick={disable} disabled={busy || !off.password || off.code.trim().length < 6}>إيقاف المصادقة الثنائية</button>
+            <SubmitButton className="btn danger" onClick={disable} blocked={busy || !off.password || off.code.trim().length < 6}>إيقاف المصادقة الثنائية</SubmitButton>
           </>)}
           {me.two_fa_enabled && me.two_fa_required && <p className="muted">إيقافها غير متاح بسبب سياسة المنشأة.</p>}
         </section>
@@ -82,12 +83,12 @@ export default function Account({ forced, onChanged, onLogout }: { forced: boole
           <h3>تغيير كلمة المرور</h3>
           <label>كلمة المرور الحالية<input name="current-password" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} autoComplete="current-password" /></label>
           <label>كلمة المرور الجديدة (10 أحرف على الأقل، حروف وأرقام)<input name="new-password" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} autoComplete="new-password" /></label>
-          <button className="btn primary" onClick={changePassword} disabled={busy || !pw.current || !pw.next}>تغيير كلمة المرور</button>
+          <SubmitButton className="btn primary" onClick={changePassword} blocked={busy || !pw.current || !pw.next}>تغيير كلمة المرور</SubmitButton>
         </section>
         <section className="card pad">
           <h3>الأجهزة</h3>
           <p className="muted">إن ضاع هاتف أو شككت بوجود من يستخدم حسابك، أنهِ كل الجلسات.</p>
-          <button className="btn danger" onClick={logoutAll} disabled={busy}>تسجيل الخروج من كل الأجهزة</button>
+          <SubmitButton className="btn danger" onClick={logoutAll} blocked={busy}>تسجيل الخروج من كل الأجهزة</SubmitButton>
         </section>
       </>)}
       {forced && <button className="btn ghost" onClick={onLogout}>تسجيل الخروج</button>}

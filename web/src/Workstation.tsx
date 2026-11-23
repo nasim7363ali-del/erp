@@ -1,3 +1,4 @@
+import { GlobalSearch } from './ui/kit/GlobalSearch';
 import { screens, resolveScreen, type ScreenId } from './screens';
 import { useSyncExternalStore, type ReactNode } from 'react';
 import { ChevronLeft, Clock3, FlaskConical, LayoutGrid, LogOut, ReceiptText, RefreshCw, Store, UserRound, Wifi, WifiOff } from 'lucide-react';
@@ -49,7 +50,7 @@ export default function Workstation({ boot, tab, offline, pending = 0, problems 
       <header className="toolbar">
         <Brand className="mobile-brand" />
         <div className="breadcrumb"><span>مساحة العمل</span><ChevronLeft size={14} aria-hidden="true" /><strong>{active.title}</strong></div>
-        <div className="toolbar-actions">
+        <div className="toolbar-actions"><GlobalSearch perms={boot.perms} />
           {preview && <a className="erp-return-link" href="#/" aria-label="العودة إلى لوحة رِفد"><LayoutGrid size={16} aria-hidden="true" /><span>لوحة رِفد</span></a>}
           {preview && <span className="toolbar-badge preview-badge"><FlaskConical size={14} aria-hidden="true" />معاينة التصميم</span>}
           <span className={`toolbar-badge ${offline ? 'offline' : 'online'}`} role="status">{offline ? <WifiOff size={15} aria-hidden="true" /> : <Wifi size={15} aria-hidden="true" />}{offline ? 'دون اتصال' : preview ? 'وضع تجريبي' : 'متصل'}{pending > 0 && <span> · {pending} بانتظار الإرسال</span>}</span>

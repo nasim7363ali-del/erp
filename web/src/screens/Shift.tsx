@@ -1,3 +1,4 @@
+import { SubmitButton } from '../ui/kit/SubmitButton';
 import { useCallback, useEffect, useState } from 'react';
 import { api, ApiError, type Bootstrap } from '../api';
 import { failed, flush, queue, dismissFailed, sent, total, type Failed } from '../offline';
@@ -63,7 +64,7 @@ export default function Shift({ boot, reload, example }: { boot: Bootstrap; relo
             {example ? <p className="muted">هذه وردية تجريبية للعرض فقط ولا يمكن إغلاقها.</p> : <>
               <label>النقد الفعلي في الدرج بعد العدّ (ر.ي)<input name="counted-cash" inputMode="decimal" autoComplete="off" dir="ltr" value={counted} onChange={(e) => setCounted(e.target.value.replace(/[^\d.]/g, ''))} /></label>
               {msg && <p className={msg.kind === 'ok' ? 'ok' : 'error'} role="status">{msg.text}</p>}
-              <button className="btn primary" disabled={busy || counted === ''} onClick={close}>{busy ? 'جارٍ الإغلاق…' : 'إغلاق الوردية'}</button>
+              <SubmitButton className="btn primary" blocked={busy || counted === ''} onClick={close}>{busy ? 'جارٍ الإغلاق…' : 'إغلاق الوردية'}</SubmitButton>
             </>}
           </div>
         </>
