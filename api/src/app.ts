@@ -1,3 +1,4 @@
+import { accountingReportRoutes } from './routes/accounting-reports.js';
 import { ledgerRoutes } from './routes/ledger.js';
 import { accountingRoutes } from './routes/accounting.js';
 import { loadPermissions, stripCostFields, type Permissions } from './rbac.js';
@@ -63,6 +64,7 @@ export async function buildApp(pool: Pool, opts: AppOptions): Promise<FastifyIns
   app.addHook('preSerialization', async (req, _reply, payload) => req.user && !req.user.perms?.viewCost ? stripCostFields(payload) : payload);
   installErrorHandler(app);
   app.get('/api/health', async () => ({ ok: true }));
+  await app.register(accountingReportRoutes, { prefix: '/api/accounting' });
   await app.register(ledgerRoutes, { prefix: '/api/accounting' });
   await app.register(accountingRoutes, { prefix: '/api/accounting' });
   await app.register(referenceRoutes, { prefix: '/api' });

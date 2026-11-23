@@ -11,6 +11,7 @@ export const screens = [
   { id: 'cost-centers', route: '#/accounting/cost-centers', title: 'مراكز التكلفة', description: 'تنظيم مراكز التكلفة وتفعيلها وتعطيلها.', icon: Network, module: 'accounting', section: 'setup', pattern: 'list', requiredPerm: 'manageAccounting', offlinePolicy: 'online-only', component: lazy(() => import('./screens/CostCenters')) },
   { id: 'journals', route: '#/accounting/journals', title: 'القيود اليومية', description: 'مسودات وقيود متوازنة وعكس محاسبي يحفظ الأصل.', icon: BookOpen, module: 'accounting', section: 'operations', pattern: 'form', requiredPerm: 'manageAccounting', offlinePolicy: 'online-only', component: lazy(() => import('./screens/Journals')) },
   { id: 'vouchers', route: '#/accounting/vouchers', title: 'سندات القبض والصرف', description: 'سندات فعلية مرتبطة بالحسابات والأطراف والورديات.', icon: ReceiptText, module: 'accounting', section: 'operations', pattern: 'form', requiredPerm: 'manageAccounting', offlinePolicy: 'online-only', component: lazy(() => import('./screens/Vouchers')) },
+  { id: 'accounting-reports', route: '#/accounting/reports', title: 'التقارير المحاسبية', description: 'ميزان المراجعة وكشف حساب الأستاذ للفرع.', icon: BookOpen, module: 'accounting', section: 'reports', pattern: 'list', requiredPerm: 'manageAccounting', offlinePolicy: 'online-only', component: lazy(() => import('./screens/AccountingReports')) },
 ] as const;
 export type ScreenId = typeof screens[number]['id'];
 export function resolveScreen(hash: string) { return screens.find(s => s.route === hash || `#${s.id}` === hash); }
