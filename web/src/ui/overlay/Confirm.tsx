@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 export function PanelDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { const node = dialog.current; node?.showModal(); return () => { if (node?.open) node.close(); }; }, []);
+  useEffect(() => { const node = dialog.current; node?.showModal(); node?.querySelector<HTMLElement>('[data-dialog-initial-focus], [autofocus]')?.focus(); return () => { if (node?.open) node.close(); }; }, []);
   return <dialog ref={dialog} className="e-dialog" aria-label={title} onCancel={e => { e.preventDefault(); onClose(); }}>{children}</dialog>;
 }
 export function Confirm({ title, label, children, reason = false, danger = true, onClose, onConfirm }: {
@@ -12,6 +12,6 @@ export function Confirm({ title, label, children, reason = false, danger = true,
     e.preventDefault(); if (reason && !text.trim()) { setError('اذكر سبب العملية'); input.current?.focus(); return; } onConfirm(text.trim());
   }}>{reason && <label>سبب العملية<textarea ref={input} value={text} aria-invalid={!!error} onBlur={() => { if (!text.trim()) setError('اذكر سبب العملية'); }} onChange={e => { setText(e.target.value); setError(''); }} /></label>}
     {error && <p role="alert">{error}</p>}
-    <div className="e-actions"><button autoFocus type="button" className="e-button secondary" onClick={onClose}>تراجع</button><button className={`e-button ${danger ? 'danger' : 'primary'}`}>{label}</button></div>
+    <div className="e-actions"><button data-dialog-initial-focus autoFocus type="button" className="e-button secondary" onClick={onClose}>تراجع</button><button className={`e-button ${danger ? 'danger' : 'primary'}`}>{label}</button></div>
   </form></PanelDialog>;
 }
