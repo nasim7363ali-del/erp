@@ -1,3 +1,4 @@
+import { requirePerm } from '../rbac.js';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withTenant } from '../db.js';
@@ -29,10 +30,18 @@ export async function salesRoutes(app: FastifyInstance) {
    * ONE sales path for online and offline: the phone always posts through submit_offline_sale (idempotent by offline_uuid).
    * The server derives branch, warehouse and payment accounts, so the client cannot pick ledger accounts.
    */
-  app.post('/sales', { preHandler: app.authenticate }, async (req, reply) => {
+  app.post('/sales', { preHandler: [app.authenticate, requirePerm('post')] }, async (req, reply) => {
     const s = req.user; const b = Sale.parse(req.body);
+    if (!s.perms.giveDiscount && ((b.discount_amount ?? 0) > 0 || b.lines.some(l => (l.line_discount ?? 0) > 0)))
+      throw new HttpError(403, 'PERMISSION_DENIED', 'يلزم صلاحية منح الخصم');
     const out = await withTenant(app.pool, s.tid, async (c) => {
       const q = async (sql: string, p: unknown[] = []) => (await c.query(sql, p)).rows;
+      if (!s.perms.giveDiscount) {
+        const prices = await q('SELECT id, default_sale_price FROM items WHERE id = ANY($1::uuid[])', [b.lines.map(l => l.item_id)]);
+        const byId = new Map(prices.map(i => [i.id, Number(i.default_sale_price)]));
+        if (b.lines.some(l => byId.has(l.item_id) && l.unit_price < byId.get(l.item_id)!))
+          throw new HttpError(403, 'PERMISSION_DENIED', 'يلزم صلاحية منح الخصم لتخفيض السعر');
+      }
       const [shift] = await q('SELECT id, cash_account_id, cashier_user_id FROM pos_shifts WHERE id = $1', [b.shift_id]);
       if (!shift) throw new HttpError(404, 'NOT_FOUND', 'الوردية غير موجودة');
       // a cashier rings sales only on their own shift (a queued receipt must not be re-attributed if another person logs in on the phone)

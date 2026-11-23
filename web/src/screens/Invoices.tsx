@@ -1,3 +1,5 @@
+import { Confirm } from '../ui/overlay/Confirm';
+import { SubmitButton } from '../ui/kit/SubmitButton';
 import { useCallback, useEffect, useRef, useState } from 'react';
 import { api, ApiError, type Bootstrap, type InvoiceDetail, type InvoiceRow } from '../api';
 import { money, time, uuid } from '../format';
@@ -45,7 +47,7 @@ function Detail({ id, boot, offline, example, back, onDone }: { id: string; boot
   const d = example ?? details;
   const [qty, setQty] = useState<Record<string, number>>({});
   const [method, setMethod] = useState('CASH');
-  const [mode, setMode] = useState<'view' | 'reverse'>('view'); const [reason, setReason] = useState('');
+  const [mode, setMode] = useState<'view' | 'reverse'>('view');
   const [busy, setBusy] = useState(false); const [err, setErr] = useState('');
   const requestId = useRef(uuid());                        // one id per opened screen: a double tap or a retry can never refund twice
 
@@ -67,7 +69,8 @@ function Detail({ id, boot, offline, example, back, onDone }: { id: string; boot
       onDone(`تم المرتجع — مستند رقم ${r.invoice_no} بقيمة ${money(r.net_total)} ر.ي (${METHOD[method]})`);
     } catch (e) { setErr(e instanceof ApiError ? e.message + (e.detail ? ` — ${e.detail.slice(0, 140)}` : '') : 'خطأ'); } finally { setBusy(false); }
   }
-  async function doReverse() {
+  async function doReverse(reason: string) {
+    if (busy || offline) return;
     setBusy(true); setErr('');
     try { await api(`/invoices/${id}/reverse`, { body: { reason } }); onDone(`أُلغيت الفاتورة رقم ${d!.invoice_no} وأُعيد المخزون والنقد.`); }
     catch (e) { setErr(e instanceof ApiError ? e.message + (e.detail ? ` — ${e.detail.slice(0, 140)}` : '') : 'خطأ'); } finally { setBusy(false); }
@@ -103,7 +106,7 @@ function Detail({ id, boot, offline, example, back, onDone }: { id: string; boot
           {method === 'CREDIT' && <p className="muted small">يُخصم المبلغ من رصيد العميل.</p>}
           {method === 'CASH' && <p className="muted small">يخرج النقد من درج وردية {boot.shift ? 'الحالية' : ''}.</p>}
           {offline && <p className="error">المرتجع يحتاج اتصالًا بالخادم.</p>}
-          <button className="btn primary big" disabled={busy || offline || !boot.shift || chosen.length === 0} onClick={doReturn}>{chosen.length ? `تأكيد المرتجع — ${money(total)} ر.ي` : 'اختر الكميات المرتجعة'}</button>
+          <SubmitButton className="btn primary big" blocked={busy || offline || !boot.shift || chosen.length === 0} onClick={doReturn}>{chosen.length ? `تأكيد المرتجع — ${money(total)} ر.ي` : 'اختر الكميات المرتجعة'}</SubmitButton>
         </div>
       )}
 
@@ -112,10 +115,9 @@ function Detail({ id, boot, offline, example, back, onDone }: { id: string; boot
           <h2>إلغاء الفاتورة كاملة</h2>
           {Number(d.returned_total) > 0 ? <p className="muted">عليها مرتجعات مرحّلة، ولا يمكن إلغاؤها قبل إلغاء المرتجعات.</p> : mode === 'view'
             ? <button className="btn danger" onClick={() => setMode('reverse')}>إلغاء الفاتورة…</button>
-            : <>
-                <label>سبب الإلغاء (مطلوب)<textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
-                <div className="actions"><button className="btn danger" disabled={busy || offline || !reason.trim()} onClick={doReverse}>تأكيد الإلغاء</button><button className="btn ghost" onClick={() => setMode('view')}>تراجع</button></div>
-              </>}
+            : <Confirm title={`إلغاء الفاتورة رقم ${d.invoice_no}`} label="تأكيد الإلغاء" reason onClose={() => setMode('view')} onConfirm={text => { setMode('view'); void doReverse(text); }}>
+                <p>سيُعكس الأثر المحاسبي وتُعاد الكميات والنقد. {offline && 'يلزم اتصال بالإنترنت'}</p>
+              </Confirm>}
         </div>
       )}
       {err && <p className="error" role="alert">{err}</p>}

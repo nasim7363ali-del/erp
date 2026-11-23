@@ -5,6 +5,7 @@ import fastifyStatic from '@fastify/static';
 import { buildApp } from './app.js';
 import { makePool } from './db.js';
 
+if (process.env.NODE_ENV === 'production' && !process.env.DATABASE_URL) throw new Error('DATABASE_URL is required in production');
 const url = process.env.DATABASE_URL ?? 'postgres://erp_api:erp_api_dev@127.0.0.1:5432/erp_demo';
 const secret = process.env.JWT_SECRET ?? (process.env.NODE_ENV === 'production' ? '' : 'dev-only-secret-change-me');
 if (!secret) throw new Error('JWT_SECRET is required in production');

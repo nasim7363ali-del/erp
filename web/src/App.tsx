@@ -1,14 +1,17 @@
-import { useCallback, useEffect, useState } from 'react';
+import { screens } from './screens';
+const Invoices = screens[1].component;
+const Shift = screens[2].component;
+const Conflicts = screens[3].component;
+const Account = screens[4].component;
+import { Suspense, useCallback, useEffect, useState } from 'react';
 import { api, ApiError, getToken, setToken, type Bootstrap } from './api';
 import { clearAll, clearBoot, flush, queue, failed, init, loadBoot, saveBoot } from './offline';
 import Login from './screens/Login';
 import OpenShift from './screens/OpenShift';
 import Pos from './screens/Pos';
-import Shift from './screens/Shift';
-import Conflicts from './screens/Conflicts';
-import Invoices from './screens/Invoices';
-import Account from './screens/Account';
-import Workstation, { useTab } from './Workstation';
+import { useTab } from './Workstation';
+import AppShell from './ui/AppShell';
+import { ListScreen, DetailScreen, FormScreen } from './ui/templates';
 
 export default function App() {
   const [authed, setAuthed] = useState(!!getToken());
@@ -52,17 +55,17 @@ export default function App() {
   }
 
   if (!ready) return <div className="center muted">جارٍ التحميل…</div>;
-  if (!authed) return <Login onDone={() => setAuthed(true)} />;
-  if (forced2fa) return <main className="standalone workspace"><div className="page-intro"><div className="intro-copy"><h1>إعداد الحساب</h1><p>فعّل التحقق بخطوتين للمتابعة إلى مساحة العمل.</p></div></div><Account forced onChanged={() => { setForced2fa(false); load(); }} onLogout={logout} /></main>;
+  if (!authed) return <FormScreen><Login onDone={() => setAuthed(true)} /></FormScreen>;
+  if (forced2fa) return <Suspense fallback={<p role="status">جارٍ التحميل…</p>}><main className="standalone workspace"><div className="page-intro"><div className="intro-copy"><h1>إعداد الحساب</h1><p>فعّل التحقق بخطوتين للمتابعة إلى مساحة العمل.</p></div></div><Account forced onChanged={() => { setForced2fa(false); load(); }} onLogout={logout} /></main></Suspense>;
   if (!boot) return <main className="center muted"><p role="status">{loadError || (offline ? 'تعذّر الاتصال بالخادم ولا توجد بيانات محفوظة.' : 'جارٍ التحميل…')}</p>{(loadError || offline) && <button className="btn" onClick={load}>إعادة المحاولة</button>}</main>;
 
-  return <Workstation boot={boot} tab={tab} offline={offline} pending={pending} problems={problems} onLogout={logout}>
-    <div hidden={tab !== 'pos'}>{boot.shift ? <Pos key={boot.shift.id} boot={boot} setBoot={setBoot} active={tab === 'pos'} /> : <OpenShift onOpened={load} offline={offline} />}</div>
-    {tab !== 'pos' && <div className="module-content">
-      {tab === 'invoices' && <Invoices boot={boot} offline={offline} />}
-      {tab === 'shift' && <Shift boot={boot} reload={load} />}
-      {tab === 'conflicts' && <Conflicts boot={boot} reload={load} />}
-      {tab === 'account' && <><Account forced={false} onChanged={load} onLogout={() => { setToken(null); clearBoot().then(() => { setBoot(null); setAuthed(false); }); }} /><button className="btn ghost mobile-logout" type="button" onClick={logout}>تسجيل الخروج من هذا الجهاز</button></>}
-    </div>}
-  </Workstation>;
+  return <AppShell boot={boot} tab={tab} offline={offline} pending={pending} problems={problems} onLogout={logout}>
+    <div hidden={tab !== 'pos'}><FormScreen>{boot.shift ? <Pos key={boot.shift.id} boot={boot} setBoot={setBoot} active={tab === 'pos'} /> : <OpenShift draftKey={`opening-shift:${boot.tenant_id}:${boot.user.id}`} onOpened={load} offline={offline} />}</FormScreen></div>
+    {tab !== 'pos' && <Suspense fallback={<p role="status">جارٍ التحميل…</p>}><div className="module-content">
+      {tab === 'invoices' && <ListScreen><Invoices boot={boot} offline={offline} /></ListScreen>}
+      {tab === 'shift' && <DetailScreen><Shift boot={boot} reload={load} /></DetailScreen>}
+      {tab === 'conflicts' && boot.perms?.reverse && <ListScreen><Conflicts boot={boot} reload={load} /></ListScreen>}
+      {tab === 'account' && <FormScreen><Account forced={false} onChanged={load} onLogout={() => { setToken(null); clearBoot().then(() => { setBoot(null); setAuthed(false); }); }} /><button className="btn ghost mobile-logout" type="button" onClick={logout}>تسجيل الخروج من هذا الجهاز</button></FormScreen>}
+    </div></Suspense>}
+  </AppShell>;
 }

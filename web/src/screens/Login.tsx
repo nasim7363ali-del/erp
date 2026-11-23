@@ -1,3 +1,4 @@
+import { SubmitButton } from '../ui/kit/SubmitButton';
 import { useState, type FormEvent } from 'react';
 import { ArrowLeft, Eye, EyeOff, LayoutGrid, ShieldCheck } from 'lucide-react';
 import { api, ApiError, setToken, type LoginResult } from '../api';
@@ -54,7 +55,7 @@ export default function Login({ onDone, preview = false }: { onDone: () => void;
           <div className="password-field"><input id="login-password" name="password" type={showPassword ? 'text' : 'password'} value={password} onChange={(event) => setPassword(event.target.value)} autoComplete="current-password" disabled={preview} required /><button className="soft-icon" type="button" disabled={preview} aria-label={showPassword ? 'إخفاء كلمة المرور' : 'إظهار كلمة المرور'} onClick={() => setShowPassword((show) => !show)}>{showPassword ? <EyeOff size={18} aria-hidden="true" /> : <Eye size={18} aria-hidden="true" />}</button></div>
         </>}
         {err && <p className="error" role="alert">{err}</p>}
-        <button className="btn primary login-submit" disabled={preview || busy || (!!challenge && code.trim().length < 6)}>{busy ? (challenge ? 'جارٍ التحقق…' : 'جارٍ تسجيل الدخول…') : challenge ? 'تأكيد رمز التحقق' : 'دخول'} <ArrowLeft size={17} aria-hidden="true" /></button>
+        <SubmitButton className="btn primary login-submit" blocked={preview || busy || (!!challenge && code.trim().length < 6)}>{busy ? (challenge ? 'جارٍ التحقق…' : 'جارٍ تسجيل الدخول…') : challenge ? 'تأكيد رمز التحقق' : 'دخول'} <ArrowLeft size={17} aria-hidden="true" /></SubmitButton>
         {challenge && <button type="button" className="btn ghost" onClick={() => { setChallenge(null); setErr(''); setPassword(''); }}>الرجوع إلى تسجيل الدخول</button>}
         {preview && <a className="login-back" href="/#pos">العودة إلى معاينة نقطة البيع</a>}
       </form>

@@ -1,3 +1,4 @@
+import { loadPermissions } from '../rbac.js';
 import type { FastifyInstance, FastifyRequest } from 'fastify';
 import bcrypt from 'bcryptjs';
 import QRCode from 'qrcode';
@@ -32,11 +33,12 @@ export async function authRoutes(app: FastifyInstance) {
     const [sc] = await q('SELECT * FROM fn_auth_secrets($1)', [u.out_user_id]);
     const prof = await withTenant(pool, u.out_tenant_id, async (c) => (await c.query('SELECT full_name_ar, branch_id FROM users WHERE id = $1', [u.out_user_id])).rows[0]);
     const needs2fa = sec.require2fa === 'all' || (sec.require2fa === 'managers' && u.out_can_reverse);
-    const session: Session = { uid: u.out_user_id, tid: u.out_tenant_id, name: prof.full_name_ar, post: u.out_can_post, reverse: u.out_can_reverse,
+    const perms = await withTenant(pool, u.out_tenant_id, (c) => loadPermissions(c, u.out_user_id));
+    const session: Session = { perms, uid: u.out_user_id, tid: u.out_tenant_id, name: prof.full_name_ar, post: u.out_can_post, reverse: u.out_can_reverse,
       cashview: u.out_can_view_cash_balance, branch: prof.branch_id, tv: sc.out_token_version, uk: key, ...(needs2fa && !u.out_two_fa_enabled ? { lim: true } : {}) };
     return { token: app.jwt.sign(session), session };
   }
-  const sessionFor = async (s: Session, tv: number): Promise<Session> => ({ uid: s.uid, tid: s.tid, name: s.name, post: s.post, reverse: s.reverse, cashview: s.cashview, branch: s.branch, uk: s.uk, tv });
+  const sessionFor = async (s: Session, tv: number): Promise<Session> => ({ perms: s.perms, uid: s.uid, tid: s.tid, name: s.name, post: s.post, reverse: s.reverse, cashview: s.cashview, branch: s.branch, uk: s.uk, tv });
 
   /** TOTP (never replayable) or a single-use recovery code. Returns true when accepted. */
   async function checkSecondFactor(uid: string, secretEnc: string | null, hashes: string[], code: string): Promise<boolean> {

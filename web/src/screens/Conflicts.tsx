@@ -1,3 +1,5 @@
+import { Confirm } from '../ui/overlay/Confirm';
+import { SubmitButton } from '../ui/kit/SubmitButton';
 import { useCallback, useEffect, useState } from 'react';
 import { CloudCheck } from 'lucide-react';
 import { api, ApiError, type Bootstrap, type Conflict } from '../api';
@@ -54,22 +56,24 @@ function Card({ c, boot, shifts, done }: { c: Conflict; boot: Bootstrap; shifts:
 
       {panel === null && (
         <div className="actions">
-          <button className="btn primary" disabled={busy} onClick={retry}>إعادة المحاولة</button>
+          <SubmitButton className="btn primary" blocked={busy} onClick={retry}>إعادة المحاولة</SubmitButton>
           {mgr && isCredit && !c.credit_approved && <button className="btn" onClick={() => setPanel('override')}>موافقة على تجاوز السقف</button>}
           {mgr && isShift && <button className="btn" onClick={() => setPanel('move')}>نقل لوردية مفتوحة</button>}
           {mgr && <button className="btn danger" onClick={() => setPanel('reject')}>رفض الإيصال</button>}
         </div>
       )}
-      {panel && (
+      {panel === 'reject' && <Confirm title={`رفض الإيصال ${c.offline_receipt_no}`} label="تأكيد الرفض" reason onClose={() => setPanel(null)} onConfirm={text => {
+        setPanel(null); void run(() => resolve({ action: 'REJECT', reason: text }));
+      }}><p>سيُرفض الإيصال وتُسجّل المعالجة المحاسبية المرتبطة به.</p></Confirm>}
+      {panel && panel !== 'reject' && (
         <div className="panel">
           {panel === 'move' && <label>الوردية الهدف<select value={shift} onChange={(e) => setShift(e.target.value)}><option value="">اختر…</option>{shifts.map((s) => <option key={s.id} value={s.id}>وردية فُتحت {time(s.opened_at)}</option>)}</select></label>}
           <label>السبب (مطلوب)<textarea rows={2} value={reason} onChange={(e) => setReason(e.target.value)} /></label>
           <div className="actions">
-            <button className={`btn ${panel === 'reject' ? 'danger' : 'primary'}`} disabled={busy || !reason.trim() || (panel === 'move' && !shift)} onClick={() => run(async () => {
+            <SubmitButton className={`btn ${'primary'}`} blocked={busy || !reason.trim() || (panel === 'move' && !shift)} onClick={() => run(async () => {
               if (panel === 'override') { await api(`/sales/${c.id}/credit-override`, { body: { reason } }); setPanel(null); setReason(''); await retry(); }
-              if (panel === 'reject') await resolve({ action: 'REJECT', reason });
               if (panel === 'move') await resolve({ action: 'REASSIGN_SHIFT', reason, shift_id: shift });
-            })}>{panel === 'override' ? 'موافقة ثم ترحيل' : panel === 'reject' ? 'تأكيد الرفض' : 'نقل وترحيل'}</button>
+            })}>{panel === 'override' ? 'موافقة ثم ترحيل' : 'نقل وترحيل'}</SubmitButton>
             <button className="btn ghost" onClick={() => setPanel(null)}>تراجع</button>
           </div>
         </div>

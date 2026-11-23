@@ -27,6 +27,7 @@ export async function api<T>(path: string, init: { method?: string; body?: unkno
 export interface Item { id: string; item_code: string; barcode: string | null; name_ar: string; unit_id: string; price: string; stock: string }
 export interface Customer { id: string; code: string; name_ar: string; credit_limit: string; balance: string }
 export interface Bootstrap {
+  tenant_id?: string; perms?: Record<import('./screens').Permission, boolean>;
   user: { id: string; name: string; can_post: boolean; can_reverse: boolean };
   branch: { id: string; name_ar: string }; warehouse: { id: string; name_ar: string };
   shift: { id: string; opened_at: string; opening_float: string } | null;

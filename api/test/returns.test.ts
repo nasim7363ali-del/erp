@@ -120,10 +120,10 @@ describe('reversing a sale', () => {
 });
 
 describe('discounted sales', () => {
-  it('a return refunds what was really paid per unit (invoice discount share removed)', async () => {
+  it('a cashier return refunds a manager-authorized discounted sale exactly', async () => {
     const sh = (await post(cashier, '/api/shifts/open', { opening_float: 0, date })).json().shift_id;
     const body = { ...saleBody({ shift_id: sh, date, lines: [{ item: item('1001'), qty: 2 }], payments: [{ payment_method: 'CASH', amount: 8100 }] }), discount_amount: 900 };
-    const s1 = await post(cashier, '/api/sales', body); expect(s1.statusCode).toBe(201);
+    const s1 = await post(mgr, '/api/sales', body); expect(s1.statusCode).toBe(201);
     const d = (await get(cashier, `/api/invoices/${s1.json().invoice_id}`)).json();
     expect(d.lines[0].refund_price).toBe(4050);
     const r = await post(cashier, `/api/invoices/${s1.json().invoice_id}/return`, { request_id: randomUUID(), shift_id: sh, lines: [{ original_line_id: d.lines[0].id, qty: 2 }], payments: [{ payment_method: 'CASH', amount: 8100 }] });

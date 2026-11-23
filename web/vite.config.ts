@@ -28,8 +28,9 @@ export default defineConfig(({ mode }) => ({
   server: {
     host: '0.0.0.0',
     port: 5173,
+    allowedHosts: ['localhost', '.e2b.app'],
     ...(mode === 'design'
-      ? { allowedHosts: ['workspace-jo2tj2ra-5173-45deec4de8f4b269.v0.build'] }
+      ? {}
       : { proxy: { '/api': 'http://127.0.0.1:3000' } }),
   },
 }));

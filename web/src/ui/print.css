@@ -1,0 +1,9 @@
+@media print {
+  .rail, .toolbar, .navigation, .e-rail, .e-bottom, .no-print { display: none !important; }
+  .work-area, .workspace { margin: 0 !important; padding: 0 !important; width: 100% !important; }
+  body { background: white; color: black; }
+  table { width: 100%; border-collapse: collapse; }
+  tr { break-inside: avoid; }
+  thead { display: table-header-group; }
+  @page { size: A4; margin: 12mm; }
+}

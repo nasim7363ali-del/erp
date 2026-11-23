@@ -1,0 +1,33 @@
+name: Verify foundation
+on:
+  push:
+    branches: [main]
+  pull_request:
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check database rebuild error handling
+        run: bash scripts/test-db-build.sh
+      - name: Build and run isolated PostgreSQL 16 integration suite
+        run: docker compose -f docker-compose.test.yml run --build --rm test
+
+  browser:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - run: npm run test:e2e --workspace web
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: phase0-browser-results
+          path: web/test-results

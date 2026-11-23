@@ -1,3 +1,4 @@
+import { requirePerm } from '../rbac.js';
 import type { FastifyInstance } from 'fastify';
 import { z } from 'zod';
 import { withTenant } from '../db.js';
@@ -11,7 +12,7 @@ const Resolve = z.object({
 
 export async function conflictRoutes(app: FastifyInstance) {
   // S48: receipts the server could not post (stock, closed shift, credit limit) - nothing was lost, a person decides.
-  app.get('/sync-conflicts', { preHandler: app.authenticate }, async (req) => {
+  app.get('/sync-conflicts', { preHandler: [app.authenticate, requirePerm('reverse')] }, async (req) => {
     const s = req.user;
     return withTenant(app.pool, s.tid, async (c) => {
       const conflicts = (await c.query(
