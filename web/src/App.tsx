@@ -7,6 +7,7 @@ const Accounts = screens[5].component;
 const CostCenters = screens[6].component;
 const Journals = screens[7].component;
 const Vouchers = screens[8].component;
+const AccountingReports = screens[9].component;
 import { Suspense, useCallback, useEffect, useState } from 'react';
 import { api, ApiError, getToken, setToken, type Bootstrap } from './api';
 import { clearAll, clearBoot, flush, queue, failed, init, loadBoot, saveBoot } from './offline';
@@ -69,6 +70,7 @@ export default function App() {
       {tab === 'invoices' && <ListScreen><Invoices boot={boot} offline={offline} /></ListScreen>}
       {tab === 'shift' && <DetailScreen><Shift boot={boot} reload={load} /></DetailScreen>}
       {tab === 'conflicts' && boot.perms?.reverse && <ListScreen><Conflicts boot={boot} reload={load} /></ListScreen>}
+      {tab === 'accounting-reports' && boot.perms?.manageAccounting && <AccountingReports boot={boot} offline={offline} />}
       {tab === 'journals' && boot.perms?.manageAccounting && <Journals boot={boot} offline={offline} />}
       {tab === 'vouchers' && boot.perms?.manageAccounting && <Vouchers boot={boot} offline={offline} />}
       {tab === 'accounts' && boot.perms?.manageAccounting && <Accounts boot={boot} offline={offline} />}
