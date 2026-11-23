@@ -702,3 +702,5 @@ textarea { min-height: 70px; }
 @media (prefers-reduced-motion: reduce) { *, *::before, *::after { animation-duration: .01ms !important; transition-duration: .01ms !important; scroll-behavior: auto !important; } }
 
 .picker-surface.erp { min-height: 0; background: transparent; font-size: inherit; }
+
+@media (max-width: 800px) { .global-menu-label { display: none; } .global-menu { min-width: 44px; min-height: 44px; padding: 8px; flex: none; } }
