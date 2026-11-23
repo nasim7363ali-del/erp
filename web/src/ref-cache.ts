@@ -1,7 +1,7 @@
 import { api } from './api';
 import { idbGet, idbSet } from './idb';
 export interface Reference { id: string; code: string; name_ar: string; is_active: boolean; barcode?: string; phone?: string; party_type?: string; is_analytical?: boolean; is_system?: boolean; price?: string }
-export interface RefCache { tenant_id: string; cachedAt: string; accounts: Reference[]; parties: Reference[]; items: Reference[]; warehouses: Reference[] }
+export interface RefCache { hasMore?: Record<string, boolean>; tenant_id: string; cachedAt: string; accounts: Reference[]; parties: Reference[]; items: Reference[]; warehouses: Reference[] }
 export const referenceKey = (tenant: string, user: string) => `references:${tenant}:${user}`;
 export const staleReferences = (cachedAt: string) => !Number.isFinite(Date.parse(cachedAt)) || Date.now() - Date.parse(cachedAt) > 86400000;
 export function loadReferences(tenant: string, user: string) { return idbGet<RefCache>(referenceKey(tenant, user), 'references'); }

@@ -55,12 +55,12 @@ export default function App() {
   }
 
   if (!ready) return <div className="center muted">جارٍ التحميل…</div>;
-  if (!authed) return <Login onDone={() => setAuthed(true)} />;
+  if (!authed) return <FormScreen><Login onDone={() => setAuthed(true)} /></FormScreen>;
   if (forced2fa) return <Suspense fallback={<p role="status">جارٍ التحميل…</p>}><main className="standalone workspace"><div className="page-intro"><div className="intro-copy"><h1>إعداد الحساب</h1><p>فعّل التحقق بخطوتين للمتابعة إلى مساحة العمل.</p></div></div><Account forced onChanged={() => { setForced2fa(false); load(); }} onLogout={logout} /></main></Suspense>;
   if (!boot) return <main className="center muted"><p role="status">{loadError || (offline ? 'تعذّر الاتصال بالخادم ولا توجد بيانات محفوظة.' : 'جارٍ التحميل…')}</p>{(loadError || offline) && <button className="btn" onClick={load}>إعادة المحاولة</button>}</main>;
 
   return <AppShell boot={boot} tab={tab} offline={offline} pending={pending} problems={problems} onLogout={logout}>
-    <div hidden={tab !== 'pos'}>{boot.shift ? <Pos key={boot.shift.id} boot={boot} setBoot={setBoot} active={tab === 'pos'} /> : <OpenShift draftKey={`opening-shift:${boot.tenant_id}:${boot.user.id}`} onOpened={load} offline={offline} />}</div>
+    <div hidden={tab !== 'pos'}><FormScreen>{boot.shift ? <Pos key={boot.shift.id} boot={boot} setBoot={setBoot} active={tab === 'pos'} /> : <OpenShift draftKey={`opening-shift:${boot.tenant_id}:${boot.user.id}`} onOpened={load} offline={offline} />}</FormScreen></div>
     {tab !== 'pos' && <Suspense fallback={<p role="status">جارٍ التحميل…</p>}><div className="module-content">
       {tab === 'invoices' && <ListScreen><Invoices boot={boot} offline={offline} /></ListScreen>}
       {tab === 'shift' && <DetailScreen><Shift boot={boot} reload={load} /></DetailScreen>}

@@ -36,6 +36,7 @@ function RecordContext({ record, kind, context }: { record: PickerRecord; kind: 
 export type Props = {
   records?: PickerRecord[];
   storageKey?: string;
+  onSearch?: (query: string) => void;
   kind: PickerKind;
   label: string;
   value: string;
@@ -55,12 +56,13 @@ export type Props = {
   demo?: { query: string; side: Side; focus: boolean };
 };
 
-export function CodeNamePicker({ kind, label, value, onChange, context = {}, options, optional, error, nextField, getNextField, catalogState = 'ready', cacheAgeDays = 0, onRetry, onBarcodeMatch, onScanExisting, getConflict, demo, storageKey, records: suppliedRecords = [] }: Props) {
+export function CodeNamePicker({ kind, label, value, onChange, context = {}, options, optional, error, nextField, getNextField, catalogState = 'ready', cacheAgeDays = 0, onRetry, onBarcodeMatch, onScanExisting, getConflict, demo, storageKey, onSearch, records: suppliedRecords = [] }: Props) {
   const id = useId();
   const root = useRef<HTMLFieldSetElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
   const nameRef = useRef<HTMLInputElement>(null);
-  const records = suppliedRecords.filter((record) => !options || options.includes(record.value));
+  const [favorites, setFavorites] = useState<string[]>([]);
+  const records = suppliedRecords.map(r => ({ ...r, favorite: r.favorite || favorites.includes(r.code) })).filter((record) => !options || options.includes(record.value));
   const picked = records.find((record) => record.value === value);
   const [side, setSide] = useState<Side | null>(demo?.focus ? demo.side : null);
   const [draft, setDraft] = useState(demo?.query ?? '');
@@ -74,12 +76,14 @@ export function CodeNamePicker({ kind, label, value, onChange, context = {}, opt
   const [networkOffline, setNetworkOffline] = useState(!navigator.onLine);
   const [delay, setDelay] = useState(0);
   const query = side === draftSide ? normalizePicker(draft) : '';
+  useEffect(() => { onSearch?.(query); }, [query, onSearch]);
   const offline = networkOffline || catalogState === 'offline';
   const loading = !offline && catalogState === 'loading';
   const failed = !offline && catalogState === 'error';
   const [recent, setRecent] = useState<string[]>([]);
   useEffect(() => {
-    let active = true; setRecent([]);
+    let active = true; setRecent([]); setFavorites([]);
+    if (storageKey) void idbGet<string[]>(`picker-favorites:${storageKey}:${kind}`).then(v => { if (active) setFavorites(v ?? []); }).catch(() => {});
     if (storageKey) void idbGet<string[]>(`picker-recents:${storageKey}:${kind}`).then(v => { if (active) setRecent(v ?? []); }).catch(() => {});
     return () => { active = false; };
   }, [storageKey, kind]);
@@ -243,7 +247,10 @@ export function CodeNamePicker({ kind, label, value, onChange, context = {}, opt
         {!suggestions.length && !loading && <p className="e-picker-list-empty">{query ? 'لا توجد نتائج' : 'ستظهر هنا الاختيارات الأخيرة. اكتب رقمًا أو اسمًا للبحث.'}</p>}
       </div>}
     </div>
-    {picked && <div className="e-picker-selected"><span><Check size={15} aria-hidden="true" /> تم الاختيار</span><button type="button" className="e-text-action" onClick={() => clear()}>غيّر<span className="sr-only"> {label}</span></button></div>}
+    {picked && <div className="e-picker-selected"><button type="button" className="e-text-action" aria-pressed={!!picked.favorite} onClick={() => {
+      const next = favorites.includes(picked.code) ? favorites.filter(code => code !== picked.code) : [...favorites, picked.code];
+      setFavorites(next); if (storageKey) void idbSet(`picker-favorites:${storageKey}:${kind}`, next).catch(() => {});
+    }}>المفضّلة</button><span><Check size={15} aria-hidden="true" /> تم الاختيار</span><button type="button" className="e-text-action" onClick={() => clear()}>غيّر<span className="sr-only"> {label}</span></button></div>}
     {picked && <p className="e-picker-context" id={`${id}-context`}><RecordContext record={picked} kind={kind} context={context} /></p>}
     {issue && <div className="e-picker-error" id={`${id}-error`}><p><CircleAlert size={15} aria-hidden="true" />{issue}</p>{!picked && <button type="button" className="e-text-action" onClick={() => clear('name')}>ابحث بالاسم</button>}</div>}
     {offline && <p className="e-picker-offline" id={`${id}-offline`}><WifiOff size={15} aria-hidden="true" />{cacheAgeDays > 1 ? 'القائمة محفوظة على الجهاز · آخر تحديث منذ أكثر من يوم' : 'دون اتصال · تُعرض القائمة المتاحة على الجهاز'}</p>}

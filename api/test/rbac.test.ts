@@ -59,3 +59,12 @@ describe('Phase 0 authorization and references', () => {
     expect((await get(token, '/api/test/manage-users')).statusCode).toBe(403);
   });
 });
+
+it('supports bounded normalized server reference search and rejects arbitrary catalog names', async () => {
+  const { token } = await login(ctx.app, 'cashier');
+  const result = await get(token, '/api/ref-search/items?q=' + encodeURIComponent('ارز'));
+  expect(result.statusCode).toBe(200);
+  expect(result.json().records.length).toBeGreaterThan(0);
+  expect(result.json().records.length).toBeLessThanOrEqual(100);
+  expect((await get(token, '/api/ref-search/users?q=x')).statusCode).toBe(400);
+});
