@@ -6,6 +6,9 @@ export class HttpError extends Error {
 }
 
 const AR: Record<string, string> = {
+  DRAFT_CONFLICT: 'تغيرت المسودة؛ أعد تحميل أحدث نسخة قبل المتابعة',
+  ACCOUNT_RULE: 'راجع الحساب النشط ونوعه والأطراف ومراكز التكلفة والوردية المطلوبة',
+  REVERSAL_INVALID: 'تعذر العكس؛ راجع حالة المستند والتاريخ والسبب',
   INSUFFICIENT_STOCK: 'الكمية المتاحة لا تكفي',
   CREDIT_LIMIT_EXCEEDED: 'تجاوز سقف الائتمان للعميل، يلزم موافقة المدير',
   PERMISSION_DENIED: 'لا تملك الصلاحية لهذا الإجراء',
