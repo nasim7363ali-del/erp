@@ -68,3 +68,13 @@ it('supports bounded normalized server reference search and rejects arbitrary ca
   expect(result.json().records.length).toBeLessThanOrEqual(100);
   expect((await get(token, '/api/ref-search/users?q=x')).statusCode).toBe(400);
 });
+
+it('does not allow a lower unit price to bypass discount permissions', async () => {
+  const { token } = await login(ctx.app, 'cashier');
+  const item = (await get(token, '/api/pos/bootstrap')).json().items[0];
+  const result = await ctx.app.inject({ method: 'POST', url: '/api/sales', headers: auth(token), payload: {
+    offline_uuid: randomUUID(), receipt_no: 'RBAC-PRICE', invoice_date: '2026-11-23', shift_id: randomUUID(),
+    lines: [{ item_id: item.id, unit_id: item.unit_id, qty: 1, unit_price: 0 }], payments: [{ payment_method: 'CASH', amount: 1 }],
+  } });
+  expect(result.statusCode).toBe(403);
+});
