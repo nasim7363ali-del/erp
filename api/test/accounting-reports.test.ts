@@ -68,3 +68,13 @@ it('requires all report permissions and refreshes grants on each request',async(
  finally {sqlAdmin(`UPDATE roles SET can_view_cash_balance=true WHERE id='${role}'`);}
  expect((await get('report-options')).statusCode).toBe(200);
 });
+it('does not expose another tenant fiscal year or accounts through options or direct IDs',async()=>{
+ const t=randomUUID(),y=randomUUID(),parent=randomUUID(),a=randomUUID();
+ sqlAdmin(`INSERT INTO tenants(id,code,name_ar) VALUES('${t}','REPORT_FOREIGN','شركة خارجية');
+ INSERT INTO fiscal_years(id,tenant_id,name,start_date,end_date,is_closed) VALUES('${y}','${t}','FOREIGN2038','2038-01-01','2038-12-31',true);
+ INSERT INTO accounts(id,tenant_id,code,name_ar,level,account_type,normal_balance) VALUES('${parent}','${t}','R','رئيسي','MAIN','ASSET','DEBIT');
+ INSERT INTO accounts(id,tenant_id,parent_id,code,name_ar,level,account_type,normal_balance) VALUES('${a}','${t}','${parent}','R1','خارجي','ANALYTICAL','ASSET','DEBIT');`);
+ expect((await get('trial-balance?'+query().replace(fy,y))).statusCode).toBe(404);
+ expect((await get(`account-statement?${query()}&account_id=${a}`)).statusCode).toBe(404);
+ const o=(await get('report-options')).json();expect(o.years.some((v:any)=>v.id===y)).toBe(false);expect(o.accounts.some((v:any)=>v.id===a)).toBe(false);
+});
