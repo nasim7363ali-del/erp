@@ -14,7 +14,7 @@ BEGIN
   INSERT INTO branches(tenant_id, code, name_ar, is_default) VALUES (v_t, 'B1', 'الفرع الرئيسي', true) RETURNING id INTO v_branch;
   INSERT INTO fiscal_years(tenant_id, name, start_date, end_date)
   VALUES (v_t, v_year::text, make_date(v_year,1,1), make_date(v_year,12,31)) RETURNING id INTO v_fy;
-  INSERT INTO roles(tenant_id, name_ar, can_post, can_reverse, can_view_cost, can_view_cash_balance, can_give_discount) VALUES (v_t, 'مدير', true, true, true, true, true) RETURNING id INTO v_mgr_role;
+  INSERT INTO roles(tenant_id, name_ar, can_post, can_reverse, can_view_cost, can_view_cash_balance, can_give_discount, permissions_json) VALUES (v_t, 'مدير', true, true, true, true, true, '{"manageAccounting":true}'::jsonb) RETURNING id INTO v_mgr_role;
   INSERT INTO roles(tenant_id, name_ar, can_post, can_reverse) VALUES (v_t, 'كاشير', true, false) RETURNING id INTO v_cash_role;
   INSERT INTO users(tenant_id, branch_id, role_id, username, full_name_ar, password_hash) VALUES
     (v_t, v_branch, v_mgr_role,  'mgr',     'أحمد المدير',  current_setting('app.seed_pwhash')),
