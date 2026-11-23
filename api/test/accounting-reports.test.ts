@@ -20,8 +20,8 @@ beforeAll(async()=>{
  branch=sqlAdmin(`SELECT branch_id FROM users WHERE id='${uid}'`);
  fy=randomUUID();account=randomUUID();counter=randomUUID();
  sqlAdmin(`INSERT INTO fiscal_years(id,tenant_id,name,start_date,end_date) VALUES('${fy}','${tid}','REPORT2038','2038-01-01','2038-12-31');
- INSERT INTO accounts(id,tenant_id,code,name_ar,level,account_type,normal_balance) VALUES
- ('${account}','${tid}','RPT1','تقرير أول','ANALYTICAL','ASSET','DEBIT'),('${counter}','${tid}','RPT2','تقرير مقابل','ANALYTICAL','ASSET','DEBIT');`);
+ INSERT INTO accounts(id,tenant_id,parent_id,code,name_ar,level,account_type,normal_balance) VALUES
+ ('${account}','${tid}',(SELECT id FROM accounts WHERE tenant_id='${tid}' AND code='1102'),'RPT1','تقرير أول','ANALYTICAL','ASSET','DEBIT'),('${counter}','${tid}',(SELECT id FROM accounts WHERE tenant_id='${tid}' AND code='1102'),'RPT2','تقرير مقابل','ANALYTICAL','ASSET','DEBIT');`);
  journal('2038-01-15','10.1001');journal('2038-02-10','0.2002');journal('2038-03-01','700');journal('2038-02-11','999',false);
  const other=randomUUID();sqlAdmin(`INSERT INTO branches(id,tenant_id,code,name_ar) VALUES('${other}','${tid}','RPT_OTHER','فرع آخر')`);journal('2038-02-12','888',true,other);
 });
