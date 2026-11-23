@@ -124,7 +124,7 @@ function Checkout({ boot, lines, total, onClose, onDone, preview }: { boot: Boot
       </div>)}
       {payments.length < boot.methods.length && <button className="btn ghost" type="button" onClick={() => { const method = boot.methods.find((m) => !used.has(m.method)); if (method) { const id = nextPaymentId.current++; setPayments((entries) => [...entries, { id, method: method.method, amount: String(Math.max(rest, 0)) }]); } }}>+ إضافة طريقة دفع</button>}
       {rest !== 0 && <p className="error" role="status">{rest > 0 ? `المتبقي ${money(rest)} ر.ي` : `زيادة ${money(-rest)} ر.ي`}</p>}
-      {hasCredit && <><div className="erp picker-surface"><CodeNamePicker kind="customer" label="العميل (للبيع الآجل)" value={customer} onChange={setCustomer} records={boot.customers.map(entry => ({ code: entry.code, name: entry.name_ar, value: entry.id, meta: "عميل" }))} /></div>
+      {hasCredit && <><div className="erp picker-surface"><CodeNamePicker storageKey={`${boot.tenant_id}:${boot.user.id}`} kind="customer" label="العميل (للبيع الآجل)" value={customer} onChange={setCustomer} records={boot.customers.map(entry => ({ code: entry.code, name: entry.name_ar, value: entry.id, meta: "عميل" }))} /></div>
         {selected && <p className={overLimit ? 'warnbox' : 'muted'}>الرصيد الحالي {money(selected.balance)} · {Number(selected.credit_limit) > 0 ? `السقف ${money(selected.credit_limit)}` : 'بلا سقف'}{overLimit && ' — سيُعلّق الإيصال حتى موافقة المدير.'}</p>}</>}
     </fieldset>
     {error && <p className="error" role="alert">{error}</p>}

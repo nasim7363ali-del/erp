@@ -1,3 +1,4 @@
+import { idbGet, idbSet } from '../../idb';
 import { useEffect, useEffectEvent, useId, useRef, useState, type ClipboardEvent, type FocusEvent, type KeyboardEvent } from 'react';
 import { Barcode, Camera, Check, CircleAlert, Clock3, LoaderCircle, Search, Star, WifiOff } from 'lucide-react';
 import { canSeeCash, exactPicker, itemWarehouse, matchesPicker, normalizePicker, pickerNouns, restrictionFor, stockAt, type PickerContext, type PickerKind, type PickerRecord } from './pickerCatalog';
@@ -5,7 +6,7 @@ import { PickerScanner } from './PickerScanner';
 
 type Side = 'code' | 'name';
 export type CatalogState = 'ready' | 'loading' | 'error' | 'offline';
-const recentCodes = new Map<PickerKind,string[]>();
+
 const number = new Intl.NumberFormat('en-US');
 const money = (value: number) => `${number.format(value)} ر.ي`;
 
@@ -34,6 +35,7 @@ function RecordContext({ record, kind, context }: { record: PickerRecord; kind: 
 
 export type Props = {
   records?: PickerRecord[];
+  storageKey?: string;
   kind: PickerKind;
   label: string;
   value: string;
@@ -53,7 +55,7 @@ export type Props = {
   demo?: { query: string; side: Side; focus: boolean };
 };
 
-export function CodeNamePicker({ kind, label, value, onChange, context = {}, options, optional, error, nextField, getNextField, catalogState = 'ready', cacheAgeDays = 0, onRetry, onBarcodeMatch, onScanExisting, getConflict, demo, records: suppliedRecords = [] }: Props) {
+export function CodeNamePicker({ kind, label, value, onChange, context = {}, options, optional, error, nextField, getNextField, catalogState = 'ready', cacheAgeDays = 0, onRetry, onBarcodeMatch, onScanExisting, getConflict, demo, storageKey, records: suppliedRecords = [] }: Props) {
   const id = useId();
   const root = useRef<HTMLFieldSetElement>(null);
   const codeRef = useRef<HTMLInputElement>(null);
@@ -75,7 +77,12 @@ export function CodeNamePicker({ kind, label, value, onChange, context = {}, opt
   const offline = networkOffline || catalogState === 'offline';
   const loading = !offline && catalogState === 'loading';
   const failed = !offline && catalogState === 'error';
-  const recent = recentCodes.get(kind) ?? [];
+  const [recent, setRecent] = useState<string[]>([]);
+  useEffect(() => {
+    let active = true; setRecent([]);
+    if (storageKey) void idbGet<string[]>(`picker-recents:${storageKey}:${kind}`).then(v => { if (active) setRecent(v ?? []); }).catch(() => {});
+    return () => { active = false; };
+  }, [storageKey, kind]);
   const suggestions = !side || picked || loading || failed ? [] : query
     ? records.filter((record) => matchesPicker(record,query,side)).slice(0,7)
     : records.filter((record) => record.favorite || recent.includes(record.code)).sort((a,b) => Number(!!b.favorite)-Number(!!a.favorite) || recent.indexOf(a.code)-recent.indexOf(b.code));
@@ -115,7 +122,9 @@ export function CodeNamePicker({ kind, label, value, onChange, context = {}, opt
     }
     const restriction = reasonFor(record);
     if (restriction) { setMessage(restriction); setAnnouncement(restriction); setSide(null); setActive(-1); return false; }
-    recentCodes.set(kind,[record.code,...recent.filter((code) => code !== record.code)].slice(0,5));
+    const next = [record.code,...recent.filter((code) => code !== record.code)].slice(0,5);
+    setRecent(next);
+    if (storageKey) void idbSet(`picker-recents:${storageKey}:${kind}`, next).catch(() => {});
     onChange(record.value); setDraft(''); setMessage(''); setSide(null); setActive(-1);
     setAnnouncement(`تم اختيار ${record.name}`);
     if (fromBarcode) onBarcodeMatch?.(record);

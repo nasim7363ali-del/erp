@@ -37,3 +37,12 @@ test('offline shell retains cached catalogue', async ({ page, context }) => {
   await expect(page.getByRole('status').filter({ hasText: 'دون اتصال' })).toBeVisible();
   await expect(page.getByText('أرز بسمتي', { exact: true }).first()).toBeVisible();
 });
+
+test('Arabic normalization and code matching do not depend on a network', async () => {
+  const { normalizePicker, exactPicker, matchesPicker, restrictionFor } = await import('../src/ui/kit/pickerCatalog');
+  expect(normalizePicker('إِدارَة ١٢۳')).toBe('اداره 123');
+  const records = [{ code: 'C001', name: 'مؤسسة النور', value: 'uuid-a', meta: '' }];
+  expect(exactPicker(records, normalizePicker('c001'), 'code')?.value).toBe('uuid-a');
+  expect(matchesPicker(records[0], normalizePicker('مؤسسه'), 'name')).toBe(true);
+  expect(restrictionFor({ ...records[0], restriction: 'inactive' })).toContain('غير نشط');
+});

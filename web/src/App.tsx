@@ -60,7 +60,7 @@ export default function App() {
   if (!boot) return <main className="center muted"><p role="status">{loadError || (offline ? 'تعذّر الاتصال بالخادم ولا توجد بيانات محفوظة.' : 'جارٍ التحميل…')}</p>{(loadError || offline) && <button className="btn" onClick={load}>إعادة المحاولة</button>}</main>;
 
   return <AppShell boot={boot} tab={tab} offline={offline} pending={pending} problems={problems} onLogout={logout}>
-    <div hidden={tab !== 'pos'}>{boot.shift ? <Pos key={boot.shift.id} boot={boot} setBoot={setBoot} active={tab === 'pos'} /> : <OpenShift onOpened={load} offline={offline} />}</div>
+    <div hidden={tab !== 'pos'}>{boot.shift ? <Pos key={boot.shift.id} boot={boot} setBoot={setBoot} active={tab === 'pos'} /> : <OpenShift draftKey={`opening-shift:${boot.tenant_id}:${boot.user.id}`} onOpened={load} offline={offline} />}</div>
     {tab !== 'pos' && <Suspense fallback={<p role="status">جارٍ التحميل…</p>}><div className="module-content">
       {tab === 'invoices' && <ListScreen><Invoices boot={boot} offline={offline} /></ListScreen>}
       {tab === 'shift' && <DetailScreen><Shift boot={boot} reload={load} /></DetailScreen>}

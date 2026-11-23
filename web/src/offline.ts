@@ -32,7 +32,7 @@ export const total = (b: SaleBody) => b.lines.reduce((s, l) => s + l.qty * l.uni
 
 export const loadBoot = () => idbGet<Bootstrap>(BOOT).then((b) => b ?? null).catch(() => null);
 export const saveBoot = (b: Bootstrap) => { chain = chain.then(() => idbSet(BOOT, b)); return chain as Promise<void>; };
-export async function clearAll() { mem = { [Q]: [], [F]: [], [R]: [] }; await Promise.all([Q, F, R, BOOT].map(idbDel)); changed(); }
+export async function clearAll() { mem = { [Q]: [], [F]: [], [R]: [] }; await Promise.all([Q, F, R, BOOT].map(key => idbDel(key))); changed(); }
 export async function clearBoot() { await idbDel(BOOT); }
 
 /** Resolves only after the sale is durable on the device. */
