@@ -15,7 +15,7 @@ test('shows trial totals and account statement, clears stale results on changed 
  await page.goto('/#/accounting/reports');
  await expect(page.getByRole('combobox',{name:'السنة المالية',exact:true})).toHaveValue(year);
  await page.getByRole('button',{name:'عرض التقرير',exact:true}).click();
- await expect(page.getByRole('status')).toHaveText('الميزان متوازن');
+ await expect(page.getByRole('region',{name:'نتيجة التقرير'}).getByRole('status')).toHaveText('الميزان متوازن');
  await expect(page.getByRole('region',{name:'جدول التقرير'})).toContainText('10.1001');
  await page.getByRole('combobox',{name:'التقرير',exact:true}).selectOption('account-statement');
  await expect(page.getByRole('region',{name:'نتيجة التقرير'})).toHaveCount(0);
