@@ -44,7 +44,7 @@ export function addUser(username: string, role: 'cashier' | 'manager'): void {
   const hash = bcrypt.hashSync(TEST_PASSWORD, 4);
   writeFileSync(file, `INSERT INTO users(tenant_id, branch_id, role_id, username, full_name_ar, password_hash)
     SELECT t.id, b.id, r.id, '${username}', '${username}', '${hash}' FROM tenants t JOIN branches b ON b.tenant_id = t.id JOIN roles r ON r.tenant_id = t.id
-    WHERE t.code = 'DEMO' AND r.name_ar = '${role === 'manager' ? 'مدير' : 'كاشير'}';`);
+    WHERE t.code = 'DEMO' AND b.id = (SELECT branch_id FROM users WHERE tenant_id=t.id AND username='mgr') AND r.name_ar = '${role === 'manager' ? 'مدير' : 'كاشير'}';`);
   chmodSync(file, 0o644);
   execFileSync('su', ['postgres', '-c', `psql -X -q -v ON_ERROR_STOP=1 -d ${TEST_DB} -f ${file}`]);
 }

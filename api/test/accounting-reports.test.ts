@@ -29,12 +29,12 @@ afterAll(async()=>{await ctx.app.close();await ctx.pool.end();});
 it('reports posted branch movement, exact opening and closing, excluding drafts and later dates',async()=>{
  const r=await get('trial-balance?'+query());expect(r.statusCode).toBe(200);
  const b=r.json();expect(b.scope).toBe('BRANCH');expect(b.currency).toBe('BASE');
- expect(b.rows.find((r:any)=>r.account_id===account)).toMatchObject({opening:'10.1001',debit:'0.2002',credit:'0',closing:'10.3003'});
+ expect(b.rows.find((r:any)=>r.account_id===account)).toMatchObject({opening:'10.1001',debit:'0.2002',credit:'0.0000',closing:'10.3003'});
  expect(Number(b.totals.debit)).toBe(Number(b.totals.credit));expect(Number(b.totals.closing)).toBe(0);
 });
 it('statement includes opening plus movement as running balance, including empty pages',async()=>{
  const r=await get(`account-statement?${query()}&account_id=${account}`);expect(r.statusCode).toBe(200);const b=r.json();
- expect(b).toMatchObject({opening:'10.1001',debit:'0.2002',credit:'0',closing:'10.3003',count:1});expect(b.rows[0].balance).toBe('10.3003');
+ expect(b).toMatchObject({opening:'10.1001',debit:'0.2002',credit:'0.0000',closing:'10.3003',count:1});expect(b.rows[0].balance).toBe('10.3003');
  const empty=(await get(`account-statement?${query()}&account_id=${account}&offset=50`)).json();expect(empty.rows).toEqual([]);expect(empty.closing).toBe('10.3003');
 });
 it('keeps running balance across pages and uses deterministic tie ordering',async()=>{
