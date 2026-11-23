@@ -73,3 +73,23 @@ Do not use `docker compose down -v` on data you need.
 For historical live-POS details see `README_APP.md`; for the pre-change audit see
 `REPOSITORY_AUDIT_AR.md` and for this implementation's verification see
 `FOUNDATION_STATUS_AR.md`.
+
+## Phase 0 shared foundation
+
+- Live routes use `#/pos`, `#/invoices`, `#/shift`, `#/conflicts`, and `#/account`;
+  old `#pos`-style links remain supported. The POS cart stays mounted during navigation.
+- `web/src/screens.ts` is the live screen registry; shared components/templates/styles
+  live under `web/src/ui/`. The `erp/` directory remains a design-only preview of later modules.
+- API sessions expose `perms`. Permissions are refreshed on authenticated requests,
+  and `manageUsers` is explicitly sourced from `roles.permissions_json.manageUsers`
+  (boolean `true` only, denied by default). No users/roles administration endpoints
+  are introduced in Phase 0.
+- `/api/ref-cache` is tenant-scoped and bounded; `/api/ref-search/:kind` supplies
+  normalized fallback searches for larger catalogues. Local reference and draft stores
+  are separate from the existing offline sales queue.
+- Browser checks: `npx playwright install chromium`, then
+  `npm run test:e2e --workspace web`. The tests use deterministic API fixtures,
+  not production credentials, at 390/768/1280px.
+
+See `FOUNDATION_STATUS_AR.md` for implementation coverage, verification evidence,
+security decisions and limitations before moving to Phase 1.
