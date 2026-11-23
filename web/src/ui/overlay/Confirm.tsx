@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type ReactNode } from 'react';
 export function PanelDialog({ title, onClose, children }: { title: string; onClose: () => void; children: ReactNode }) {
   const dialog = useRef<HTMLDialogElement>(null);
-  useEffect(() => { const node = dialog.current; node?.showModal(); return () => { if (node?.open) node.close(); }; }, []);
+  useEffect(() => { const node = dialog.current; node?.showModal(); node?.querySelector<HTMLElement>('[autofocus]')?.focus(); return () => { if (node?.open) node.close(); }; }, []);
   return <dialog ref={dialog} className="e-dialog" aria-label={title} onCancel={e => { e.preventDefault(); onClose(); }}>{children}</dialog>;
 }
 export function Confirm({ title, label, children, reason = false, danger = true, onClose, onConfirm }: {
