@@ -23,7 +23,11 @@ async function owned(c:Client, kind:string, id:string, branch:string) {
 export async function ledgerRoutes(app:FastifyInstance) {
   const access={preHandler:[app.authenticate,requirePerm('manageAccounting')],config:{rateLimit:{max:120,timeWindow:'1 minute'}}};
   app.get('/document-options',access,req=>withTenant(app.pool,req.user.tid,async c=>({
-    accounts:(await c.query('SELECT id,code,name_ar,account_type,is_active,is_analytical FROM accounts ORDER BY code')).rows,
+    accounts:(await c.query(`SELECT a.id,a.code,a.name_ar,a.account_type,a.is_active,a.is_analytical,
+      NOT (EXISTS(SELECT 1 FROM warehouses w WHERE w.inventory_account_id=a.id) OR EXISTS(SELECT 1 FROM tenant_accounting_settings s WHERE s.default_inventory_account_id=a.id)) AS non_inventory,
+      NOT (EXISTS(SELECT 1 FROM pos_shifts p WHERE p.cash_account_id=a.id) OR EXISTS(SELECT 1 FROM tenant_accounting_settings s WHERE s.default_cash_account_id=a.id)) AS non_drawer,
+      NOT EXISTS(SELECT 1 FROM tenant_accounting_settings s WHERE a.id IN(s.customers_control_account_id,s.suppliers_control_account_id)) AS non_control
+      FROM accounts a ORDER BY a.code`)).rows,
     parties:(await c.query('SELECT id,code,name_ar,party_type,is_active FROM parties ORDER BY code')).rows,
     centers:(await c.query('SELECT id,code,name_ar,is_active FROM cost_centers ORDER BY code')).rows,
     shifts:(await c.query("SELECT id, cash_account_id,opened_at FROM pos_shifts WHERE branch_id=$1 AND status='OPEN' ORDER BY opened_at",[req.user.branch])).rows,
