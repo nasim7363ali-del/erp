@@ -64,3 +64,12 @@ test('cart survives navigation; customer picker supports keyboard lookup offline
   await code.press('Enter');
   await expect(page.getByRole('combobox', { name: 'الاسم — العميل (للبيع الآجل)' })).toHaveValue('مؤسسة النور');
 });
+
+test('cached catalogue filtering meets the 100ms budget for 5000 references', async () => {
+  const { matchesPicker } = await import('../src/ui/kit/pickerCatalog');
+  const records = Array.from({ length: 5000 }, (_, i) => ({ code: String(i), name: `صنف ${i}`, value: String(i), meta: '' }));
+  const start = performance.now();
+  const result = records.filter(r => matchesPicker(r, '4999', 'code'));
+  expect(performance.now() - start).toBeLessThan(100);
+  expect(result).toHaveLength(1);
+});

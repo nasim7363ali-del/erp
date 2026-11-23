@@ -1,3 +1,4 @@
+import { Confirm } from '../ui/overlay/Confirm';
 import { CodeNamePicker } from '../ui/kit/CodeNamePicker';
 import { useMemo, useRef, useState } from 'react';
 import { CheckCircle2, ChevronLeft, CircleAlert, ShoppingBasket, X } from 'lucide-react';
@@ -71,7 +72,7 @@ export default function Pos({ boot, setBoot, active, initialCart, onPreviewSale 
     </div>
     {basketOpen && <Modal title="سلة المبيعات" className="sheet-basket" onClose={() => setBasketOpen(false)}><Basket {...basketProps} inSheet /></Modal>}
     {dialog === 'checkout' && <Checkout boot={boot} lines={lines} total={total} onClose={() => setDialog(null)} onDone={finish} preview={!!onPreviewSale} />}
-    {dialog === 'clear' && <Modal title="إفراغ سلة المبيعات؟" onClose={() => setDialog(null)}><p className="muted">ستُزال جميع الأصناف من هذه العملية.</p><div className="actions"><button className="btn ghost" type="button" onClick={() => setDialog(null)}>إبقاء السلة</button><button className="btn danger" type="button" onClick={() => { setCart({}); setDialog(null); }}>إفراغ السلة</button></div></Modal>}
+    {dialog === 'clear' && <Confirm title="إفراغ سلة المبيعات؟" label="إفراغ السلة" onClose={() => setDialog(null)} onConfirm={() => { setCart({}); setDialog(null); }}><p>ستُزال جميع الأصناف من هذه العملية.</p></Confirm>}
   </>;
 }
 

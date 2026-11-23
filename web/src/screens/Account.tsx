@@ -81,9 +81,9 @@ export default function Account({ forced, onChanged, onLogout }: { forced: boole
       {!forced && (<>
         <section className="card pad">
           <h3>تغيير كلمة المرور</h3>
-          <label>كلمة المرور الحالية<input name="current-password" type="password" value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} autoComplete="current-password" /></label>
-          <label>كلمة المرور الجديدة (10 أحرف على الأقل، حروف وأرقام)<input name="new-password" type="password" value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} autoComplete="new-password" /></label>
-          <SubmitButton className="btn primary" onClick={changePassword} blocked={busy || !pw.current || !pw.next}>تغيير كلمة المرور</SubmitButton>
+          <label>كلمة المرور الحالية<input name="current-password" type="password" required value={pw.current} onChange={(e) => setPw({ ...pw, current: e.target.value })} autoComplete="current-password" /></label>
+          <label>كلمة المرور الجديدة (10 أحرف على الأقل، حروف وأرقام)<input name="new-password" type="password" required minLength={10} value={pw.next} onChange={(e) => setPw({ ...pw, next: e.target.value })} autoComplete="new-password" /></label>
+          <SubmitButton className="btn primary" onClick={changePassword} blocked={busy || !pw.current || pw.next.length < 10}>تغيير كلمة المرور</SubmitButton>
         </section>
         <section className="card pad">
           <h3>الأجهزة</h3>
