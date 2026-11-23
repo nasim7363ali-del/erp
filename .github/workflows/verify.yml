@@ -1,0 +1,13 @@
+name: Verify foundation
+on: [push, pull_request]
+permissions:
+  contents: read
+jobs:
+  integration:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Check database rebuild error handling
+        run: bash scripts/test-db-build.sh
+      - name: Build and run isolated PostgreSQL 16 integration suite
+        run: docker compose -f docker-compose.test.yml run --build --rm test
