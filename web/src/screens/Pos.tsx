@@ -1,3 +1,4 @@
+import { CodeNamePicker } from '../ui/kit/CodeNamePicker';
 import { useMemo, useRef, useState } from 'react';
 import { CheckCircle2, ChevronLeft, CircleAlert, ShoppingBasket, X } from 'lucide-react';
 import type { Bootstrap, Item, SaleBody } from '../api';
@@ -93,7 +94,8 @@ function Checkout({ boot, lines, total, onClose, onDone, preview }: { boot: Boot
   const setPay = (id: number, patch: Partial<Payment>) => setPayments((current) => current.map((p) => p.id === id ? { ...p, ...patch } : p));
 
   async function submit() {
-    if (!isValid || !boot.shift || saveLock.current) return;
+    if (saveLock.current) return;
+    if (!isValid || !boot.shift) { setError('راجع المبالغ واختر العميل للبيع الآجل'); document.querySelector<HTMLElement>('.payment-fields input, .payment-fields select')?.focus(); return; }
     saveLock.current = true; setBusy(true); setError('');
     try {
       await onDone({
@@ -122,10 +124,10 @@ function Checkout({ boot, lines, total, onClose, onDone, preview }: { boot: Boot
       </div>)}
       {payments.length < boot.methods.length && <button className="btn ghost" type="button" onClick={() => { const method = boot.methods.find((m) => !used.has(m.method)); if (method) { const id = nextPaymentId.current++; setPayments((entries) => [...entries, { id, method: method.method, amount: String(Math.max(rest, 0)) }]); } }}>+ إضافة طريقة دفع</button>}
       {rest !== 0 && <p className="error" role="status">{rest > 0 ? `المتبقي ${money(rest)} ر.ي` : `زيادة ${money(-rest)} ر.ي`}</p>}
-      {hasCredit && <><label>العميل (للبيع الآجل)<select value={customer} onChange={(event) => setCustomer(event.target.value)}><option value="">اختر العميل…</option>{boot.customers.map((entry) => <option key={entry.id} value={entry.id}>{entry.name_ar}</option>)}</select></label>
+      {hasCredit && <><div className="erp picker-surface"><CodeNamePicker kind="customer" label="العميل (للبيع الآجل)" value={customer} onChange={setCustomer} records={boot.customers.map(entry => ({ code: entry.code, name: entry.name_ar, value: entry.id, meta: "عميل" }))} /></div>
         {selected && <p className={overLimit ? 'warnbox' : 'muted'}>الرصيد الحالي {money(selected.balance)} · {Number(selected.credit_limit) > 0 ? `السقف ${money(selected.credit_limit)}` : 'بلا سقف'}{overLimit && ' — سيُعلّق الإيصال حتى موافقة المدير.'}</p>}</>}
     </fieldset>
     {error && <p className="error" role="alert">{error}</p>}
-    <button className="btn primary big" type="button" disabled={!isValid || busy} onClick={submit}>{busy ? 'جارٍ حفظ الإيصال…' : preview ? 'تأكيد البيع التجريبي' : 'تأكيد البيع'}</button>
+    <button className="btn primary big" type="button" aria-busy={busy} onClick={submit}>{busy ? 'جارٍ حفظ الإيصال…' : preview ? 'تأكيد البيع التجريبي' : 'تأكيد البيع'}</button>
   </Modal>;
 }

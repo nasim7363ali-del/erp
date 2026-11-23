@@ -1,3 +1,5 @@
+import { loadPermissions, stripCostFields, type Permissions } from './rbac.js';
+import { referenceRoutes } from './routes/references.js';
 import Fastify, { type FastifyInstance, type FastifyRequest } from 'fastify';
 import jwt from '@fastify/jwt';
 import cors from '@fastify/cors';
@@ -15,6 +17,7 @@ import { conflictRoutes } from './routes/conflicts.js';
 import { invoiceRoutes } from './routes/invoices.js';
 
 export interface Session {
+  perms: Permissions;
   uid: string; tid: string; name: string; post: boolean; reverse: boolean; cashview: boolean; branch: string;
   tv: number;            // token_version: a password change, 2FA change or "sign out everywhere" invalidates every older token
   uk: string;            // login-throttle key "TENANT:username"
@@ -50,11 +53,15 @@ export async function buildApp(pool: Pool, opts: AppOptions): Promise<FastifyIns
     // a disabled user, or a token issued before a password / 2FA change, stops working immediately
     const u = await withTenant(pool, s.tid, async (c) => (await c.query('SELECT is_active, token_version FROM users WHERE id = $1', [s.uid])).rows[0]);
     if (!u || !u.is_active || u.token_version !== s.tv) throw new HttpError(401, 'SESSION_ENDED', 'انتهت الجلسة، سجّل الدخول من جديد.');
+    s.perms = await withTenant(pool, s.tid, (c) => loadPermissions(c, s.uid));
+    s.post = s.perms.post; s.reverse = s.perms.reverse; s.cashview = s.perms.cashview;
     if (s.lim && !req.url.startsWith('/api/auth/') && !req.url.startsWith('/api/me'))
       throw new HttpError(403, 'TWO_FA_ENROLLMENT_REQUIRED', 'يجب تفعيل المصادقة الثنائية قبل المتابعة.');
   });
+  app.addHook('preSerialization', async (req, _reply, payload) => req.user && !req.user.perms?.viewCost ? stripCostFields(payload) : payload);
   installErrorHandler(app);
   app.get('/api/health', async () => ({ ok: true }));
+  await app.register(referenceRoutes, { prefix: '/api' });
   await app.register(authRoutes, { prefix: '/api' });
   await app.register(posRoutes, { prefix: '/api' });
   await app.register(shiftRoutes, { prefix: '/api' });

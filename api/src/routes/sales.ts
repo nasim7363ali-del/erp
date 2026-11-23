@@ -31,6 +31,8 @@ export async function salesRoutes(app: FastifyInstance) {
    */
   app.post('/sales', { preHandler: app.authenticate }, async (req, reply) => {
     const s = req.user; const b = Sale.parse(req.body);
+    if (!s.perms.giveDiscount && ((b.discount_amount ?? 0) > 0 || b.lines.some(l => (l.line_discount ?? 0) > 0)))
+      throw new HttpError(403, 'PERMISSION_DENIED', 'يلزم صلاحية منح الخصم');
     const out = await withTenant(app.pool, s.tid, async (c) => {
       const q = async (sql: string, p: unknown[] = []) => (await c.query(sql, p)).rows;
       const [shift] = await q('SELECT id, cash_account_id, cashier_user_id FROM pos_shifts WHERE id = $1', [b.shift_id]);

@@ -31,7 +31,7 @@ export async function posRoutes(app: FastifyInstance) {
            FROM parties p WHERE p.is_active AND p.party_type IN ('CUSTOMER','BOTH') ORDER BY p.name_ar`, [s.tid, ctl?.id ?? null]);
       const [{ d }] = await q("SELECT to_char((now() AT TIME ZONE 'Asia/Riyadh')::date, 'YYYY-MM-DD') AS d");
       return {
-        user: { id: s.uid, name: s.name, can_post: s.post, can_reverse: s.reverse },
+        tenant_id: s.tid, perms: s.perms, user: { id: s.uid, name: s.name, can_post: s.post, can_reverse: s.reverse },
         branch, warehouse: wh, shift: shift ?? null, items, customers,
         methods: METHODS.map(({ method, label_ar }) => ({ method, label_ar })), server_date: d,
       };
